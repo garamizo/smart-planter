@@ -16,6 +16,12 @@ int pin_load = 4,
 const char* ssid = "Samsung GALAXY Note4 3640"; // your wireless network name (SSID)
 const char* password = "hvkv8269"; // your Wi-Fi network password
 
+//const char* ssid = "Galaxy S5 5664"; // your wireless network name (SSID)
+//const char* password = "idbt3270"; // your Wi-Fi network password
+
+//const char* ssid = "Hao's iPhone";
+//const char* password = "hli89865426";
+
 // ThingSpeak Settings
 const int channelID = 264988;
 const char* writeAPIKey = "O330OOGZLJGD0HPG"; // write API key for your ThingSpeak Channel
@@ -106,6 +112,7 @@ void loop(void)
 
     ThingSpeak.setField(1, temp);
     ThingSpeak.setField(2, bright);
+    ThingSpeak.setField(3, pump_ctrl);
     ThingSpeak.writeFields(channelID, writeAPIKey); 
 
     #ifdef DEBUG
