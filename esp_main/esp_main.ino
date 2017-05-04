@@ -5,24 +5,24 @@
 
 #include <ESP8266WiFi.h>
 
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>         //https://github.com/tzapu/WiFiManager
+
+#include <Ticker.h>
+
+Ticker flipper;
+
 #define DEBUG
 
 // hardware settings
 int pin_load = 4,
     pin_pump = 5,
-    pin_temp = 0;
-
-// Wi-Fi Settings
-const char* ssid = "Samsung GALAXY Note4 3640"; // your wireless network name (SSID)
-const char* password = "hvkv8269"; // your Wi-Fi network password
-
-//const char* ssid = "Galaxy S5 5664"; // your wireless network name (SSID)
-//const char* password = "idbt3270"; // your Wi-Fi network password
-
-//const char* ssid = "Hao's iPhone";
-//const char* password = "hli89865426";
+    pin_temp = 0,
+    pin_wlvl = 12;
 
 // ThingSpeak Settings
+const int channelID_write = 266364;
 const int channelID = 264988;
 const char* writeAPIKey = "O330OOGZLJGD0HPG"; // write API key for your ThingSpeak Channel
 const char* server = "api.thingspeak.com";
@@ -37,6 +37,20 @@ DallasTemperature sensors(&oneWire);
 
 float pump_ctrl = 10; // seconds to keep pump off
 
+volatile bool pump_state = false;
+volatile long timer_count = 0;
+
+void cycle_pump(void) {
+
+  pump_state = !pump_state;
+  if (pump_ctrl != 1 && pump_ctrl != 100)
+    digitalWrite(pin_pump, pump_state);
+  else
+    digitalWrite(pin_pump, pump_ctrl == 1 ? HIGH : LOW);
+
+  flipper.attach(pump_state ? 5 : pump_ctrl, cycle_pump);
+}
+
 /*
  * The setup function. We only start the sensors here
  */
@@ -44,13 +58,14 @@ void setup(void)
 {
   // start serial port
   Serial.begin(9600);
-  pinMode(pin_load, OUTPUT); 
   pinMode(pin_pump, OUTPUT);  
 
   // Start up the library
   sensors.begin();
 
-  WiFi.begin(ssid, password);
+  WiFiManager wifiManager;
+//  WiFi.begin(ssid, password);
+  wifiManager.autoConnect("SmartPlanter0001");
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -59,6 +74,9 @@ void setup(void)
   Serial.println("Connected");
   
   ThingSpeak.begin(client);
+
+  flipper.attach(1, cycle_pump);
+  pinMode(pin_wlvl, INPUT);
 }
 
 /*
@@ -66,41 +84,6 @@ void setup(void)
  */
 void loop(void)
 {
-  // watering
-  static long t0 = millis();
-  if(millis() >= t0) {
-    static bool state = LOW;
-
-    digitalWrite(pin_pump, state = !state);
-    
-    #ifdef DEBUG
-    t0 += ( state == HIGH ? 1000 : (pump_ctrl * 1000) );
-    #else
-    t0 += ( state == HIGH ? 60000 : (60 * 60000) );
-    #endif
-  }
-
-  // wakup
-  static long t1 = millis();
-  if(millis() >= t1) {
-    static bool state = LOW;
-
-    digitalWrite(pin_load, state = !state);
-    t1 = millis() + (state == HIGH ? 1000 : 35000);
-  }
-
-  // sensors, to take action
-  static long t2 = millis();
-  if(millis() >= t2) {
-    sensors.requestTemperatures(); // Send the command to get temperatures
-    Serial.println(sensors.getTempCByIndex(0));
-
-    #ifdef DEBUG
-    t2 += 10 * 60000;
-    #else
-    t2 += 4000;
-    #endif
-  }
 
   // post
   static long t3 = millis();
@@ -109,25 +92,41 @@ void loop(void)
     int bright = analogRead(A0);
     sensors.requestTemperatures(); // Send the command to get temperatures
     float temp = sensors.getTempCByIndex(0);
+    int level = pulseIn(pin_wlvl, HIGH, 100000);
 
     ThingSpeak.setField(1, temp);
     ThingSpeak.setField(2, bright);
-    ThingSpeak.setField(3, pump_ctrl);
-    ThingSpeak.writeFields(channelID, writeAPIKey); 
-
-    #ifdef DEBUG
-    t3 += 20000;
-    #else
-    t3 += 10 * 60000;
-    #endif
+    ThingSpeak.setField(3, int(pump_ctrl));
+    ThingSpeak.setField(4, level);
+        
+    if( ThingSpeak.writeFields(channelID, writeAPIKey) == 200 ) { // success
+      Serial.println(String(temp) + '\t' + bright + '\t' + level);
+      t3 = millis() + 15000;
+    }
+    else
+      Serial.println("Could not write to the cloud");
   }
+
 
   // update states
   static long t4 = millis();
   if(millis() >= t4) {
-    pump_ctrl = ThingSpeak.readFloatField(channelID, 3);
-    t4 = millis() + 20000;
-    Serial.println(String("Updated pump control to ") + pump_ctrl);
+    float reading = ThingSpeak.readFloatField(channelID_write, 1);
+    if (reading != 0) {
+      
+      if(pump_ctrl != reading) {
+        pump_state = false;
+        pump_ctrl = reading;
+        flipper.attach(1, cycle_pump);
+      }        
+      pump_ctrl = reading;
+
+      t4 = millis() + 1000;
+      Serial.println(String("Updated pump control to ") + pump_ctrl);
+    }
+    else
+      Serial.println("Could not read from cloud");
   }
+  
 }
 
