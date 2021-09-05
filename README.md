@@ -4,7 +4,7 @@
 
 **Human-Interactive Robotics Laboratory (HIRoLab), Michigan Tech, Houghton, MI, USA**
 
-<img src="imgs/prototype.png" width="600">
+<img src="imgs/prototype.PNG" width="600">
 
 ## Initial Configuration
 
@@ -18,28 +18,28 @@ memory.
     bus light (D) does not turn on, press
     bootstrap button (B)
 
-<img src="imgs/config_overview.png" width="600">
+<img src="imgs/config_overview.PNG" width="600">
 
 3. Connect any wireless capable device to the
     planter network (SmartPlanter0001)
 
-<img src="imgs/config_wifi.png" width="600">
+<img src="imgs/config_wifi.PNG" width="600">
 
 4. If a login window does not open
     automatically on your browser, access
     [http://192.168.4.1/](http://192.168.4.1/)
 
-<img src="imgs/config_portal.png" width="600">
+<img src="imgs/config_portal.PNG" width="600">
 
 5. Enter login and password credentials of
   your home network
 
-<img src="imgs/config_password.png" width="600">
+<img src="imgs/config_password.PNG" width="600">
 
 6. Wait a few minutes for the Smart Planter to
   login (there is no completion warning)
 
-<img src="imgs/config_saved.png" width="600">
+<img src="imgs/config_saved.PNG" width="600">
 
 7. The planter will close the SmartPlanter
   network and connect to the home network.
@@ -54,11 +54,11 @@ Each Smart Planter has a measurement channel
 a command channel
 (https://thingspeak.com/channels/266364)
 
-<img src="imgs/thingspeak.png" width="600">
+<img src="imgs/thingspeak.PNG" width="600">
 
 Thingspeak interface.
 
-<img src="imgs/chart.png" width="600">
+<img src="imgs/chart.PNG" width="600">
 
 ## Visualization and control on a smartphone app
 
@@ -76,11 +76,11 @@ slider to desired value, and press “Apply”. Once
 the IoT server receives the command, the update
 time is displayed at the bottom of the screen.
 
-<img src="imgs/app.png" width="600">
+<img src="imgs/app.PNG" width="600">
 
 ## System Components
 
-<img src="imgs/components.png" width="600">
+<img src="imgs/components.PNG" width="600">
 
 Temperature sensor (Gikfun DS18B20), Water level sensor (Force sensing resistor), Brightness sensor
 (Photoresistor GL5537), Water Pump (Drew 3W), IoT Microcontroller (HiLetGo NodeMCU ESP8266),
@@ -110,15 +110,15 @@ second operation time. That is, the pump is on for 5 seconds, turns off for “p
 repeat. This state is adjusted by another IoT channel (id: 266364 ). And this channel can be accessed
 through the SmartPlant app.
 
-<img src="imgs/diagram.png" width="600">
+<img src="imgs/diagram.PNG" width="600">
 
 ## Electrical diagram
 
-<img src="imgs/electrical_diagram.png" width="600">
+<img src="imgs/electrical_diagram.PNG" width="600">
 
 Electrical diagram
 
-<img src="imgs/circuit.png" width="600">
+<img src="imgs/circuit.PNG" width="600">
 
 Connections: Pump (A), master switch (B), power supply (C), temperature sensor (D), brightness sensor
 (E), water level sensor (F).
